@@ -13,7 +13,7 @@ const Version = "v0.0.1-dev"
 
 const usage = `assay: GPU health checks with signed, verifiable reports.
 
-Usage: assay <command> [flags]
+Usage: assay <command> [flags]   (assay <command> -h for its flags)
 
 Commands:
   check     Read GPU telemetry, run probes, write a signed report
@@ -39,7 +39,9 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	case "version":
 		fmt.Fprintln(stdout, "assay "+Version)
 		return 0
-	case "check", "keygen", "verify":
+	case "check":
+		return runCheck(args[1:], stdout, stderr)
+	case "keygen", "verify":
 		fmt.Fprintf(stderr, "assay %s: not implemented yet\n", args[0])
 		return 1
 	default:

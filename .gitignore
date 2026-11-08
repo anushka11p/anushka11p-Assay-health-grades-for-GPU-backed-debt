@@ -11,3 +11,6 @@
 # OS / editor
 .DS_Store
 .vscode/
+
+# Reports from local test runs (real census reports go in census/raw/)
+/agent/report*.json

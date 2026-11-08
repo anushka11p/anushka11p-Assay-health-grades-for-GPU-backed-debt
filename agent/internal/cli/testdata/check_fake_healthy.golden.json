@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "report_id": "00000000000000000000000000000001",
+  "created_at": "2026-11-09T12:00:00Z",
+  "agent": {
+    "version": "v0.0.1-dev",
+    "backend": "fake",
+    "scenario": "healthy"
+  },
+  "host": {
+    "hostname": "fake-host",
+    "os": "linux",
+    "provider": "unknown",
+    "driver_version": "550.54.15",
+    "cuda_driver_version": 12040,
+    "nvml_version": "12.550.54.15"
+  },
+  "gpus": [
+    {
+      "index": 0,
+      "identity": {
+        "uuid": "GPU-fa4e0000-0000-4000-8000-000000000002",
+        "serial": "FAKE000000002",
+        "name": "Tesla T4 (fake)",
+        "architecture": "Turing",
+        "pci_bus_id": "00000000:00:04.0",
+        "board_part_number": "900-2G183-0000-001",
+        "vbios_version": "90.04.38.00.03",
+        "memory_total_mib": 15360
+      },
+      "memory": {
+        "ecc_enabled": true,
+        "volatile": {
+          "corrected": 0,
+          "uncorrected": 0
+        },
+        "aggregate": {
+          "corrected": 3,
+          "uncorrected": 0
+        },
+        "retired_pages": {
+          "single_bit": 0,
+          "double_bit": 0,
+          "pending_retirement": false
+        },
+        "row_remap": null
+      },
+      "interconnect": {
+        "pcie_gen_current": 3,
+        "pcie_gen_max": 3,
+        "pcie_width_current": 16,
+        "pcie_width_max": 16,
+        "pcie_replay_counter": 0
+      },
+      "limits": {
+        "power_limit_mw": 70000,
+        "max_sm_clock_mhz": 1590,
+        "max_mem_clock_mhz": 5001,
+        "slowdown_temp_c": 90,
+        "shutdown_temp_c": 96
+      },
+      "samples": [
+        {
+          "t_ms": 0,
+          "temp_c": 45,
+          "power_mw": 66000,
+          "sm_clock_mhz": 1590,
+          "mem_clock_mhz": 5000,
+          "util_gpu_pct": 100,
+          "util_mem_pct": 62,
+          "throttle_reasons": []
+        },
+        {
+          "t_ms": 250,
+          "temp_c": 47,
+          "power_mw": 66400,
+          "sm_clock_mhz": 1590,
+          "mem_clock_mhz": 5000,
+          "util_gpu_pct": 100,
+          "util_mem_pct": 62,
+          "throttle_reasons": []
+        },
+        {
+          "t_ms": 500,
+          "temp_c": 49,
+          "power_mw": 66800,
+          "sm_clock_mhz": 1590,
+          "mem_clock_mhz": 5000,
+          "util_gpu_pct": 100,
+          "util_mem_pct": 62,
+          "throttle_reasons": []
+        },
+        {
+          "t_ms": 750,
+          "temp_c": 51,
+          "power_mw": 66000,
+          "sm_clock_mhz": 1590,
+          "mem_clock_mhz": 5000,
+          "util_gpu_pct": 100,
+          "util_mem_pct": 62,
+          "throttle_reasons": []
+        },
+        {
+          "t_ms": 1000,
+          "temp_c": 53,
+          "power_mw": 66400,
+          "sm_clock_mhz": 1590,
+          "mem_clock_mhz": 5000,
+          "util_gpu_pct": 100,
+          "util_mem_pct": 62,
+          "throttle_reasons": []
+        }
+      ],
+      "events": [],
+      "unsupported": {
+        "row_remap": "not supported on Turing (uses page retirement)"
+      }
+    }
+  ]
+}

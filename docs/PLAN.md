@@ -21,14 +21,14 @@ Start: Mon 9 Nov 2026 · Target finish: Sun 29 Nov 2026
 ## Week 1 (9–13 Nov) — Agent + telemetry
 
 **Day 1 · Mon — Setup**
-- [ ] **You:** install Go (`brew install go`) and make a GitHub repo `assay`
-- [ ] **Us:** Go module skeleton, `assay` CLI with `check` / `keygen` / `verify` stubs
-- [ ] **Us:** GitHub Actions CI running `go test` on every push
+- [x] **You:** install Go (`brew install go`) and make a GitHub repo `assay`
+- [x] **Us:** Go module skeleton, `assay` CLI with `check` / `keygen` / `verify` stubs
+- [x] **Us:** GitHub Actions CI running `go test` on every push
 
 **Day 2 · Tue — Report schema + fake GPU**
-- [ ] **Us:** report schema v1 (identity, memory health, events, interconnect, thermals)
-- [ ] **Us:** fake backend + scenarios: `healthy`, `hbm-degrading`, `thermal-throttle`, `xid-storm`, `pcie-flaky`
-- [ ] **Us:** `assay check --backend=fake` writes a report on the Mac
+- [x] **Us:** report schema v1 (identity, memory health, events, interconnect, thermals)
+- [x] **Us:** fake backend + scenarios: `healthy`, `hbm-degrading`, `thermal-throttle`, `xid-storm`, `pcie-flaky`
+- [x] **Us:** `assay check --backend=fake` writes a report on the Mac
 
 **Day 3 · Wed — Signing**
 - [ ] **Us:** canonical JSON + golden-file tests
