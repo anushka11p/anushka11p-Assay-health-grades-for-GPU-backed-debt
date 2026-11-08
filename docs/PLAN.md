@@ -31,15 +31,15 @@ Start: Mon 9 Nov 2026 · Target finish: Sun 29 Nov 2026
 - [x] **Us:** `assay check --backend=fake` writes a report on the Mac
 
 **Day 3 · Wed — Signing**
-- [ ] **Us:** canonical JSON + golden-file tests
-- [ ] **Us:** Ed25519 `keygen`, sign, `verify`, with a tamper-detection test
+- [x] **Us:** canonical JSON + golden-file tests
+- [x] **Us:** Ed25519 `keygen`, sign, `verify`, with a tamper-detection test
 
 **Day 4 · Thu — Real NVML backend**
-- [ ] **Us:** NVML backend via `go-nvml` (identity, ECC, retired pages, PCIe, thermals/power/clocks, throttle reasons, XID events)
-- [ ] **Us:** treat `NotSupported` as `null` + reason, not an error
+- [x] **Us:** NVML backend via `go-nvml` (identity, ECC, retired pages, PCIe, thermals/power/clocks, throttle reasons, XID events)
+- [x] **Us:** treat `NotSupported` as `null` + reason, not an error
 
 **Day 5 · Fri — First Colab run → M1**
-- [ ] **Us:** `notebooks/colab_check.ipynb` bootstrap cell (install Go, clone, build, run, download)
+- [x] **Us:** `notebooks/colab_check.ipynb` bootstrap cell (install Go, clone, build, run, download)
 - [ ] **You:** run it on Colab, download `report.json`, drop it in `census/raw/`
 - [ ] **Us:** fix whatever real hardware breaks
 

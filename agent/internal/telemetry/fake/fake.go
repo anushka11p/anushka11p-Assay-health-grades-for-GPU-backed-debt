@@ -78,7 +78,7 @@ type device struct {
 	eventTick  int
 }
 
-func (d *device) Identity() (report.Identity, error) {
+func (d *device) Identity() (report.Identity, telemetry.Unsupported, error) {
 	// Each scenario gets its own serial/UUID, so they look like different physical GPUs.
 	n := 0
 	for i, s := range Scenarios() {
@@ -95,7 +95,7 @@ func (d *device) Identity() (report.Identity, error) {
 		BoardPartNumber: "900-2G183-0000-001",
 		VBIOSVersion:    "90.04.38.00.03",
 		MemoryTotalMiB:  15360,
-	}, nil
+	}, nil, nil
 }
 
 func (d *device) Memory() (report.MemoryHealth, telemetry.Unsupported) {
@@ -183,15 +183,15 @@ func (d *device) Sample() (report.Sample, telemetry.Unsupported) {
 // stormXIDs is which XID fires on which poll in the xid-storm scenario.
 var stormXIDs = map[int][]uint64{2: {13}, 4: {31}, 5: {31}, 7: {48}, 8: {63}}
 
-func (d *device) PollEvents() []report.XIDEvent {
+func (d *device) PollEvents() ([]report.XIDEvent, telemetry.Unsupported) {
 	tick := d.eventTick
 	d.eventTick++
 	if d.scenario != "xid-storm" {
-		return nil
+		return nil, nil
 	}
 	var out []report.XIDEvent
 	for _, x := range stormXIDs[tick] {
 		out = append(out, report.XIDEvent{XID: x, Description: telemetry.XIDDescription(x)})
 	}
-	return out
+	return out, nil
 }

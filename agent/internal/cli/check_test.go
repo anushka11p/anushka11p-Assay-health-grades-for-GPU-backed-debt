@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"crypto/ed25519"
 	"encoding/json"
 	"flag"
 	"os"
@@ -10,14 +11,23 @@ import (
 	"time"
 
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/report"
+	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/sign"
 )
 
 // go test ./internal/cli -update rewrites the golden file after an intended change.
 var update = flag.Bool("update", false, "rewrite golden files")
 
-// pin fixes time, report ID and sleeping so check output is identical every run.
+// pin fixes time, report ID, sleeping and the signing key so check output is
+// identical every run. The key lives in a temp ASSAY_HOME, never in ~/.assay.
 func pin(t *testing.T) {
 	t.Helper()
+	home := t.TempDir()
+	t.Setenv("ASSAY_HOME", home)
+	seed := make([]byte, ed25519.SeedSize)
+	seed[0] = 42
+	if err := sign.SaveKeyPair(home, ed25519.NewKeyFromSeed(seed), false); err != nil {
+		t.Fatal(err)
+	}
 	oldNow, oldID, oldSleep := now, newID, sleep
 	now = func() time.Time { return time.Date(2026, 11, 9, 12, 0, 0, 0, time.UTC) }
 	newID = func() string { return "00000000000000000000000000000001" }
@@ -65,8 +75,8 @@ func TestCheckEveryScenarioWritesAValidReport(t *testing.T) {
 		if r.SchemaVersion != 1 || r.Agent.Scenario != s || len(r.GPUs) != 1 || len(r.GPUs[0].Samples) != 20 {
 			t.Fatalf("%s: unexpected report header/shape: %+v", s, r.Agent)
 		}
-		if _, err := report.Canonical(r); err != nil {
-			t.Fatalf("%s: written report is not canonical: %v", s, err)
+		if _, err := sign.Verify(r, nil); err != nil {
+			t.Fatalf("%s: written report doesn't verify: %v", s, err)
 		}
 	}
 }
@@ -93,9 +103,27 @@ func TestCheckRejectsBadInput(t *testing.T) {
 	}
 }
 
-func TestCheckNVMLNotBuiltYet(t *testing.T) {
-	code, _, stderr := run("check", "--backend=nvml")
-	if code != 1 || !strings.Contains(stderr, "isn't built yet") {
+func TestCheckWithoutKeyTellsYouToRunKeygen(t *testing.T) {
+	t.Setenv("ASSAY_HOME", t.TempDir()) // empty: no key
+	code, _, stderr := run("check", "--backend=fake")
+	if code != 1 || !strings.Contains(stderr, "assay keygen") {
 		t.Fatalf("exit %d, stderr %q", code, stderr)
+	}
+}
+
+func TestCheckNVMLWithoutDriverExplainsWhy(t *testing.T) {
+	pin(t)
+	// This Mac / CI box has no NVIDIA driver, so NVML can't start.
+	code, _, stderr := run("check", "--backend=nvml")
+	if code != 1 || !strings.Contains(stderr, "libnvidia-ml") {
+		t.Fatalf("exit %d, stderr %q", code, stderr)
+	}
+}
+
+func TestCheckProviderOverride(t *testing.T) {
+	pin(t)
+	_, stdout, _ := run("check", "--backend=fake", "--provider=lab", "--samples=1", "--out=-")
+	if !strings.Contains(stdout, `"provider": "lab"`) {
+		t.Fatal("provider override not written to report")
 	}
 }

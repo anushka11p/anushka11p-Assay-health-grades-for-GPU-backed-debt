@@ -27,14 +27,16 @@ type Backend interface {
 // Methods that can partially fail return what they could read, plus an
 // Unsupported map of field name -> reason for what they couldn't.
 type Device interface {
-	Identity() (report.Identity, error)
+	// Identity fails only if the GPU can't be identified at all (no UUID).
+	Identity() (report.Identity, Unsupported, error)
 	Memory() (report.MemoryHealth, Unsupported)
 	Interconnect() (report.Interconnect, Unsupported)
 	Limits() (report.Limits, Unsupported)
 	// Sample reads temperature, power, clocks, utilisation and throttle reasons right now.
 	Sample() (report.Sample, Unsupported)
 	// PollEvents returns driver error events (XIDs) seen since the last call, without blocking.
-	PollEvents() []report.XIDEvent
+	// If events can't be watched on this GPU, it returns an Unsupported entry for "events".
+	PollEvents() ([]report.XIDEvent, Unsupported)
 }
 
 // Unsupported maps a report field name to why it could not be read.
