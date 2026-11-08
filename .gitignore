@@ -1,0 +1,13 @@
+# Build output
+/agent/assay
+/agent/bin/
+/probes/bin/
+
+# Signing keys: NEVER commit these
+*.key
+*.pem
+.assay/
+
+# OS / editor
+.DS_Store
+.vscode/
