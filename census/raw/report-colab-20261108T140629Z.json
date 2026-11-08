@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "report_id": "5a39b0bece510231f810e244ba394d9a",
+  "created_at": "2026-11-08T14:06:35Z",
+  "agent": {
+    "version": "v0.0.1-dev",
+    "backend": "nvml"
+  },
+  "host": {
+    "hostname": "26938cc56483",
+    "os": "linux",
+    "provider": "colab",
+    "driver_version": "580.82.07",
+    "cuda_driver_version": 13000,
+    "nvml_version": "13.580.82.07"
+  },
+  "gpus": [
+    {
+      "index": 0,
+      "identity": {
+        "uuid": "GPU-01b6d668-8759-2ed8-60c5-32dec7700a11",
+        "serial": "1564520009069",
+        "name": "Tesla T4",
+        "architecture": "Turing",
+        "pci_bus_id": "00000000:00:04.0",
+        "board_part_number": "900-2G183-6300-T00",
+        "vbios_version": "90.04.A7.00.01",
+        "memory_total_mib": 15360
+      },
+      "memory": {
+        "ecc_enabled": true,
+        "volatile": {
+          "corrected": 0,
+          "uncorrected": 0
+        },
+        "aggregate": {
+          "corrected": 0,
+          "uncorrected": 0
+        },
+        "retired_pages": {
+          "single_bit": 0,
+          "double_bit": 0,
+          "pending_retirement": false
+        },
+        "row_remap": null
+      },
+      "interconnect": {
+        "pcie_gen_current": 1,
+        "pcie_gen_max": 3,
+        "pcie_width_current": 16,
+        "pcie_width_max": 16,
+        "pcie_replay_counter": 0
+      },
+      "limits": {
+        "power_limit_mw": 70000,
+        "max_sm_clock_mhz": 1590,
+        "max_mem_clock_mhz": 5001,
+        "slowdown_temp_c": 93,
+        "shutdown_temp_c": 96
+      },
+      "samples": [
+        {
+          "t_ms": 0,
+          "temp_c": 52,
+          "power_mw": 10324,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 250,
+          "temp_c": 52,
+          "power_mw": 10621,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 500,
+          "temp_c": 52,
+          "power_mw": 10225,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 750,
+          "temp_c": 52,
+          "power_mw": 10719,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 1000,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 1250,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 1500,
+          "temp_c": 52,
+          "power_mw": 10522,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 1750,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 2000,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 2250,
+          "temp_c": 52,
+          "power_mw": 10522,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 2500,
+          "temp_c": 52,
+          "power_mw": 10621,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 2750,
+          "temp_c": 52,
+          "power_mw": 10522,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 3000,
+          "temp_c": 52,
+          "power_mw": 10522,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 3250,
+          "temp_c": 52,
+          "power_mw": 10621,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 3500,
+          "temp_c": 52,
+          "power_mw": 10324,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 3750,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 4000,
+          "temp_c": 52,
+          "power_mw": 10522,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 4250,
+          "temp_c": 52,
+          "power_mw": 10621,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 4500,
+          "temp_c": 52,
+          "power_mw": 10719,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        },
+        {
+          "t_ms": 4750,
+          "temp_c": 52,
+          "power_mw": 10423,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
+        }
+      ],
+      "events": [],
+      "unsupported": {
+        "row_remap": "not supported on this GPU or driver"
+      }
+    }
+  ],
+  "signature": {
+    "algorithm": "ed25519",
+    "key_id": "6d1a4208fab0fc24",
+    "public_key": "cvjg3nMn8UxCKkDtJFz5YJiZgIS7yty8zmdnoLUAGQU=",
+    "digest": "sha256:c5c88716577507071bf6f401a54dd1d16c349806aa6673d55b1cd6c8b54209ab",
+    "value": "EadS+MManUCAA5WV+OfGH82hBkU3vIN7rXlIQX88PwqjVG9bQWDlKicEFDUW3mkgBeoF9/1jK8eenEaa2NDfDg=="
+  }
+}
