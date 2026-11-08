@@ -8,12 +8,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/report"
+	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/sign"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry/fake"
+	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry/nvmlbackend"
 )
 
 // These are variables (not direct calls) so tests can pin the time and report ID
@@ -36,8 +40,17 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	samples := fs.Int("samples", 20, "readings to take per GPU")
 	interval := fs.Duration("interval", 250*time.Millisecond, "time between readings")
 	out := fs.String("out", "report.json", `where to write the report ("-" for stdout)`)
+	provider := fs.String("provider", "", `override the detected provider (e.g. "colab", "kaggle", "lab")`)
+	keyPath := fs.String("key", filepath.Join(keyDir(), sign.PrivateKeyFile), "private key to sign the report with")
 	if err := fs.Parse(args); err != nil {
 		return 2
+	}
+
+	// Load the key first: no point measuring a GPU for minutes if we can't sign the result.
+	priv, err := sign.LoadPrivateKey(*keyPath)
+	if err != nil {
+		fmt.Fprintf(stderr, "assay check: can't load signing key: %v\n  run `assay keygen` first (or pass --key)\n", err)
+		return 1
 	}
 
 	var backend telemetry.Backend
@@ -52,8 +65,12 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		backend = b
 		agent.Scenario = *scenario
 	case "nvml":
-		fmt.Fprintln(stderr, "assay check: the nvml (real GPU) backend isn't built yet; use --backend=fake")
-		return 1
+		b, err := nvmlbackend.New()
+		if err != nil {
+			fmt.Fprintf(stderr, "assay check: %v\n", err)
+			return 1
+		}
+		backend = b
 	default:
 		fmt.Fprintf(stderr, "assay check: unknown backend %q (use nvml or fake)\n", *backendName)
 		return 2
@@ -64,6 +81,9 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintf(stderr, "assay check: reading host info: %v\n", err)
 		return 1
+	}
+	if *provider != "" {
+		host.Provider = *provider
 	}
 	gpus, err := telemetry.Collect(backend, telemetry.Options{Samples: *samples, Interval: *interval, Sleep: sleep})
 	if err != nil {
@@ -79,9 +99,8 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 		Host:          host,
 		GPUs:          gpus,
 	}
-	// Canonicalising now catches anything unsignable (like a float) before we write.
-	if _, err := report.Canonical(r); err != nil {
-		fmt.Fprintf(stderr, "assay check: report is not canonical: %v\n", err)
+	if err := sign.Sign(&r, priv); err != nil {
+		fmt.Fprintf(stderr, "assay check: signing report: %v\n", err)
 		return 1
 	}
 	data, err := json.MarshalIndent(r, "", "  ")
@@ -105,7 +124,7 @@ func runCheck(args []string, stdout, stderr io.Writer) int {
 	if where == "-" {
 		where = "stdout"
 	}
-	fmt.Fprintf(stderr, "assay check: wrote report %s to %s\n", r.ReportID, where)
+	fmt.Fprintf(stderr, "assay check: wrote report %s to %s (signed by key %s)\n", r.ReportID, where, r.Signature.KeyID)
 	for _, g := range gpus {
 		writeSummary(stderr, g)
 	}
@@ -137,19 +156,29 @@ func writeSummary(w io.Writer, g report.GPU) {
 		if s.TempC != nil {
 			maxT = max(maxT, *s.TempC)
 		}
-		if len(s.ThrottleReasons) > 0 {
-			throttled++
+		if slices.ContainsFunc(s.ThrottleReasons, telemetry.IsSlowdown) {
+			throttled++ // being idle isn't throttling; heat, power and hardware limits are
 		}
 	}
 	maxTemp := "n/a"
 	if maxT >= 0 {
 		maxTemp = fmt.Sprintf("%d°C", maxT)
 	}
-	fmt.Fprintf(w, "  thermals  max %s (slowdown at %s°C), throttled in %d/%d readings\n",
+	fmt.Fprintf(w, "  thermals  max %s (slowdown at %s°C), slowed down in %d/%d readings\n",
 		maxTemp, show(g.Limits.SlowdownTempC), throttled, len(g.Samples))
 
-	if len(g.Events) == 0 {
+	switch {
+	case g.Events == nil:
+		fmt.Fprintf(w, "  xid       couldn't watch: %s\n", g.Unsupported["events"])
+	case len(g.Events) == 0:
 		fmt.Fprintln(w, "  xid       none")
+	}
+	if len(g.Unsupported) > 0 {
+		noun := "fields"
+		if len(g.Unsupported) == 1 {
+			noun = "field"
+		}
+		fmt.Fprintf(w, "  n/a       %d %s not available on this GPU (see \"unsupported\" in the report)\n", len(g.Unsupported), noun)
 	}
 	for _, e := range g.Events {
 		fmt.Fprintf(w, "  xid       %d at %d ms: %s\n", e.XID, e.TMs, e.Description)

@@ -18,7 +18,7 @@ Usage: assay <command> [flags]   (assay <command> -h for its flags)
 Commands:
   check     Read GPU telemetry, run probes, write a signed report
   keygen    Create this install's Ed25519 signing key
-  verify    Check a report's signature and log inclusion
+  verify    Check a report's signature (and, from Week 2, log inclusion)
   version   Print the agent version
   help      Show this message
 `
@@ -41,9 +41,10 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "check":
 		return runCheck(args[1:], stdout, stderr)
-	case "keygen", "verify":
-		fmt.Fprintf(stderr, "assay %s: not implemented yet\n", args[0])
-		return 1
+	case "keygen":
+		return runKeygen(args[1:], stdout, stderr)
+	case "verify":
+		return runVerify(args[1:], stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "assay: unknown command %q\n\n%s", args[0], usage)
 		return 2

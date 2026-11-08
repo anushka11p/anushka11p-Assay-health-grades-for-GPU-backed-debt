@@ -116,5 +116,12 @@
         "row_remap": "not supported on Turing (uses page retirement)"
       }
     }
-  ]
+  ],
+  "signature": {
+    "algorithm": "ed25519",
+    "key_id": "0d6a48c1ecfe566e",
+    "public_key": "4e8v5vIR9zmaimpV/cgR7pLsfwHuEllC2ofvZZVTSZ8=",
+    "digest": "sha256:e5a2a605b5ad67d811c8da3db419b4eed5f8aa465a0ca11d6776223572329f83",
+    "value": "fDxE6IGstt8JgZn1oIgGgvxnWXYfS7jAGwrVyu9+Y/m6y7Q8PZr3NE2DPydTUvoKEfCAJWa62RIpwX7Jl2lmCQ=="
+  }
 }

@@ -20,6 +20,17 @@ type Report struct {
 	Agent         Agent  `json:"agent"`
 	Host          Host   `json:"host"`
 	GPUs          []GPU  `json:"gpus"`
+	// Signature covers every other field. It is left out of the bytes it signs.
+	Signature *Signature `json:"signature,omitempty"`
+}
+
+// Signature proves the report hasn't changed since the agent wrote it.
+type Signature struct {
+	Algorithm string `json:"algorithm"`  // always "ed25519"
+	KeyID     string `json:"key_id"`     // short fingerprint of the public key
+	PublicKey string `json:"public_key"` // base64, 32 bytes
+	Digest    string `json:"digest"`     // "sha256:<hex>" of the signed bytes; the log will use this
+	Value     string `json:"value"`      // base64 Ed25519 signature over the signed bytes
 }
 
 // Agent describes the software that produced the report.
