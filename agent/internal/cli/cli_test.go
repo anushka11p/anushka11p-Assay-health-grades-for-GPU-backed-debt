@@ -59,7 +59,7 @@ func TestUnknownCommandFails(t *testing.T) {
 }
 
 func TestStubCommandsSayNotImplemented(t *testing.T) {
-	for _, cmd := range []string{"check", "keygen", "verify"} {
+	for _, cmd := range []string{"keygen", "verify"} {
 		code, _, stderr := run(cmd)
 		if code != 1 {
 			t.Fatalf("%s: exit code = %d, want 1", cmd, code)
