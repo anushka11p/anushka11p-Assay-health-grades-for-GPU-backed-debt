@@ -40,8 +40,12 @@ Start: Mon 9 Nov 2026 · Target finish: Sun 29 Nov 2026
 
 **Day 5 · Fri — First Colab run → M1**
 - [x] **Us:** `notebooks/colab_check.ipynb` bootstrap cell (install Go, clone, build, run, download)
-- [ ] **You:** run it on Colab, download `report.json`, drop it in `census/raw/`
-- [ ] **Us:** fix whatever real hardware breaks
+- [x] **You:** run it on Colab, download `report.json`, drop it in `census/raw/` (8 Nov: Tesla T4 serial 1564520009069, clean)
+- [x] **Us:** fix whatever real hardware breaks (nothing broke; every field read except `row_remap`, which T4s don't have)
+
+> **Learned from the first real report:** an idle T4 drops its PCIe link to Gen1 to save
+> power. Link speed only counts when measured **under load** (Week 2 probes); the grader
+> must never flag an idle link.
 
 ## Week 2 (16–20 Nov) — Probes + transparency log
 
