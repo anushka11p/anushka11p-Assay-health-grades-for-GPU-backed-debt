@@ -20,6 +20,8 @@ type Report struct {
 	Agent         Agent  `json:"agent"`
 	Host          Host   `json:"host"`
 	GPUs          []GPU  `json:"gpus"`
+	// HostProbes test the machine as a whole (e.g. all-reduce across every GPU).
+	HostProbes []ProbeResult `json:"host_probes"`
 	// Signature covers every other field. It is left out of the bytes it signs.
 	Signature *Signature `json:"signature,omitempty"`
 }
@@ -59,6 +61,8 @@ type GPU struct {
 	Limits       Limits       `json:"limits"`
 	Samples      []Sample     `json:"samples"`
 	Events       []XIDEvent   `json:"events"`
+	// Probes are the stress tests run on this GPU, in the order they ran.
+	Probes []ProbeResult `json:"probes"`
 	// Unsupported maps a field name to the reason it could not be read.
 	Unsupported map[string]string `json:"unsupported,omitempty"`
 }
@@ -129,13 +133,17 @@ type Limits struct {
 
 // Sample is one reading of the fast-changing values, taken every interval.
 type Sample struct {
-	TMs             int64    `json:"t_ms"` // milliseconds since collection started
-	TempC           *int64   `json:"temp_c"`
-	PowerMW         *int64   `json:"power_mw"`
-	SMClockMHz      *int64   `json:"sm_clock_mhz"`
-	MemClockMHz     *int64   `json:"mem_clock_mhz"`
-	UtilGPUPct      *int64   `json:"util_gpu_pct"`
-	UtilMemPct      *int64   `json:"util_mem_pct"`
+	TMs         int64  `json:"t_ms"` // milliseconds since collection started
+	TempC       *int64 `json:"temp_c"`
+	PowerMW     *int64 `json:"power_mw"`
+	SMClockMHz  *int64 `json:"sm_clock_mhz"`
+	MemClockMHz *int64 `json:"mem_clock_mhz"`
+	UtilGPUPct  *int64 `json:"util_gpu_pct"`
+	UtilMemPct  *int64 `json:"util_mem_pct"`
+	// PCIe link right now. Idle GPUs drop to a slow link to save power, so link
+	// speed only means something in readings taken under load.
+	PCIeGen         *int64   `json:"pcie_gen"`
+	PCIeWidth       *int64   `json:"pcie_width"`
 	ThrottleReasons []string `json:"throttle_reasons"` // empty = running unthrottled
 }
 
@@ -145,6 +153,42 @@ type XIDEvent struct {
 	XID         uint64 `json:"xid"`
 	Description string `json:"description"`
 }
+
+// ProbeResult is the outcome of one stress test (a CUDA probe program).
+type ProbeResult struct {
+	Name    string `json:"name"`             // "gemm", "membw", "memtest", "soak", "allreduce"
+	Status  string `json:"status"`           // "ok", "failed", "skipped" or "timeout"
+	Reason  string `json:"reason,omitempty"` // why it failed or was skipped
+	StartMs int64  `json:"start_ms"`         // ms since the check started; match against samples' t_ms
+	EndMs   int64  `json:"end_ms"`
+	// Result is the probe's own JSON output (integers only), e.g. {"fp16_gflops": 41230}.
+	Result map[string]any `json:"result,omitempty"`
+	// During summarises this GPU's readings taken while the probe ran.
+	During *ProbeTelemetry `json:"during,omitempty"`
+}
+
+// ProbeTelemetry is what the GPU was doing while a probe ran: it explains the
+// probe's numbers (e.g. low GFLOPS because it overheated and throttled).
+type ProbeTelemetry struct {
+	Readings         int    `json:"readings"`
+	MaxTempC         *int64 `json:"max_temp_c"`
+	MaxPowerMW       *int64 `json:"max_power_mw"`
+	MinSMClockMHz    *int64 `json:"min_sm_clock_mhz"`
+	MaxPCIeGen       *int64 `json:"max_pcie_gen"`   // highest link generation seen under this load
+	MaxPCIeWidth     *int64 `json:"max_pcie_width"` // widest link seen under this load
+	SlowdownReadings int    `json:"slowdown_readings"`
+	// FirstSlowdownMs is how long after the probe started the GPU first slowed
+	// down for heat or hardware reasons; null if it never did.
+	FirstSlowdownMs *int64 `json:"first_slowdown_ms"`
+}
+
+// Probe statuses.
+const (
+	ProbeOK      = "ok"
+	ProbeFailed  = "failed"
+	ProbeSkipped = "skipped"
+	ProbeTimeout = "timeout"
+)
 
 // Ptr returns a pointer to v. Handy for filling optional fields: report.Ptr(int64(42)).
 func Ptr[T any](v T) *T { return &v }

@@ -12,7 +12,7 @@ func signedReport(t *testing.T) (reportPath, home string) {
 	t.Helper()
 	pin(t)
 	reportPath = filepath.Join(t.TempDir(), "report.json")
-	if code, _, stderr := run("check", "--backend=fake", "--samples=3", "--out", reportPath); code != 0 {
+	if code, _, stderr := run("check", "--backend=fake", "--samples=3", "--probes=none", "--out", reportPath); code != 0 {
 		t.Fatalf("check failed: %s", stderr)
 	}
 	return reportPath, os.Getenv("ASSAY_HOME")
@@ -51,8 +51,8 @@ func TestVerifyWithoutPubkeyWarns(t *testing.T) {
 func TestVerifyCatchesAnEditedFile(t *testing.T) {
 	path, _ := signedReport(t)
 	data, _ := os.ReadFile(path)
-	// Someone "improves" the GPU: lower every 45°C reading to 44°C.
-	edited := strings.ReplaceAll(string(data), `"temp_c": 45`, `"temp_c": 44`)
+	// Someone "improves" the GPU: lower every 38°C reading to 37°C.
+	edited := strings.ReplaceAll(string(data), `"temp_c": 38`, `"temp_c": 37`)
 	if edited == string(data) {
 		t.Fatal("test setup: nothing was edited")
 	}

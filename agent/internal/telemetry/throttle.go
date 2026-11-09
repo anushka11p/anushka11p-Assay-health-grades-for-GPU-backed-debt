@@ -39,10 +39,12 @@ func ThrottleReasons(mask uint64) []string {
 }
 
 // IsSlowdown reports whether a reason means the GPU is being held back by a
-// problem (heat, power, hardware), as opposed to simply being idle or configured.
+// problem (heat, hardware), as opposed to idling, configuration, or running at
+// its power limit. Hitting the power cap under full load is normal: a 70 W T4
+// does it on every heavy matrix multiply.
 func IsSlowdown(reason string) bool {
 	switch reason {
-	case "gpu_idle", "applications_clocks_setting", "display_clock_setting", "sync_boost":
+	case "gpu_idle", "applications_clocks_setting", "display_clock_setting", "sync_boost", "sw_power_cap":
 		return false
 	}
 	return true
