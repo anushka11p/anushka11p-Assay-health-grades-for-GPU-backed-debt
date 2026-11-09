@@ -1,22 +1,30 @@
 package fake_test
 
 import (
+	"context"
 	"slices"
 	"testing"
 	"time"
 
+	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/probe"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/report"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry/fake"
 )
 
-// collect runs a scenario for 20 readings with no real waiting.
+// collect runs a scenario under load for 20 readings with no real waiting.
 func collect(t *testing.T, scenario string) report.GPU {
+	t.Helper()
+	return collectWith(t, scenario, true)
+}
+
+func collectWith(t *testing.T, scenario string, loaded bool) report.GPU {
 	t.Helper()
 	b, err := fake.New(scenario)
 	if err != nil {
 		t.Fatal(err)
 	}
+	b.SetLoad(loaded)
 	gpus, err := telemetry.Collect(b, telemetry.Options{Samples: 20, Interval: 250 * time.Millisecond, Sleep: func(time.Duration) {}})
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +46,7 @@ func maxTemp(g report.GPU) int64 {
 func throttled(g report.GPU) int {
 	n := 0
 	for _, s := range g.Samples {
-		if len(s.ThrottleReasons) > 0 {
+		if slices.ContainsFunc(s.ThrottleReasons, telemetry.IsSlowdown) {
 			n++
 		}
 	}
@@ -62,8 +70,8 @@ func TestHealthyHasNoProblems(t *testing.T) {
 	if n := throttled(g); n != 0 {
 		t.Errorf("healthy GPU throttled in %d samples", n)
 	}
-	if *g.Interconnect.PCIeGenCurrent != *g.Interconnect.PCIeGenMax {
-		t.Error("healthy GPU should run PCIe at max generation")
+	if *g.Samples[0].PCIeGen != int64(*g.Interconnect.PCIeGenMax) || *g.Samples[0].PCIeWidth != 16 {
+		t.Error("healthy GPU under load should run PCIe at max generation and width")
 	}
 	if maxTemp(g) > 75 {
 		t.Errorf("healthy max temp %d°C, want <= 75", maxTemp(g))
@@ -113,6 +121,58 @@ func TestPCIeFlakyShowsDegradedLink(t *testing.T) {
 	}
 	if *ic.PCIeReplayCounter == 0 {
 		t.Error("want PCIe replays")
+	}
+	if *g.Samples[0].PCIeGen != 1 || *g.Samples[0].PCIeWidth != 8 {
+		t.Error("a flaky link stays degraded even under load")
+	}
+}
+
+func TestIdleT4DropsItsLinkAndClocks(t *testing.T) {
+	// Matches what the real Colab T4 reported on 8 Nov 2026.
+	g := collectWith(t, "healthy", false)
+	s := g.Samples[0]
+	if *s.SMClockMHz != 300 || *s.UtilGPUPct != 0 || *s.PCIeGen != 1 || !slices.Equal(s.ThrottleReasons, []string{"gpu_idle"}) {
+		t.Fatalf("idle sample = sm %d util %d gen %d reasons %v", *s.SMClockMHz, *s.UtilGPUPct, *s.PCIeGen, s.ThrottleReasons)
+	}
+	if throttled(g) != 0 {
+		t.Error("idling is not a slowdown")
+	}
+}
+
+func TestPretendProbesMatchTheScenario(t *testing.T) {
+	run := func(scenario, name string) report.ProbeResult {
+		b, _ := fake.New(scenario)
+		b.SetProbeTiming(0, func(time.Duration) {})
+		return b.Runner().Run(context.Background(), probe.Spec{Name: name}, 0)
+	}
+	if r := run("healthy", "memtest"); r.Status != report.ProbeOK || r.Result["mismatches"] != int64(0) {
+		t.Errorf("healthy memtest = %+v", r)
+	}
+	if r := run("hbm-degrading", "memtest"); r.Result["mismatches"] != int64(3) {
+		t.Errorf("hbm-degrading memtest = %+v", r)
+	}
+	if r := run("thermal-throttle", "soak"); r.Result["drop_pct"].(int64) < 50 {
+		t.Errorf("thermal soak should sag badly, got %+v", r.Result)
+	}
+	if r := run("healthy", "allreduce"); r.Status != report.ProbeSkipped {
+		t.Errorf("one fake GPU: allreduce should be skipped, got %s", r.Status)
+	}
+	for _, name := range probe.Names {
+		if _, err := report.Canonical(run("healthy", name)); err != nil {
+			t.Errorf("%s result not signable: %v", name, err)
+		}
+	}
+}
+
+func TestRunnerLoadsTheGPUOnlyWhileRunning(t *testing.T) {
+	b, _ := fake.New("healthy")
+	dev, _ := b.Device(0)
+	var during report.Sample
+	b.SetProbeTiming(0, func(time.Duration) { during, _ = dev.Sample() })
+	b.Runner().Run(context.Background(), probe.Spec{Name: "gemm"}, 0)
+	after, _ := dev.Sample()
+	if *during.UtilGPUPct != 100 || *after.UtilGPUPct != 0 {
+		t.Fatalf("util during %d, after %d; want 100 then 0", *during.UtilGPUPct, *after.UtilGPUPct)
 	}
 }
 

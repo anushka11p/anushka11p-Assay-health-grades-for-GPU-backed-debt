@@ -46,7 +46,7 @@
         "row_remap": null
       },
       "interconnect": {
-        "pcie_gen_current": 3,
+        "pcie_gen_current": 1,
         "pcie_gen_max": 3,
         "pcie_width_current": 16,
         "pcie_width_max": 16,
@@ -62,66 +62,88 @@
       "samples": [
         {
           "t_ms": 0,
-          "temp_c": 45,
-          "power_mw": 66000,
-          "sm_clock_mhz": 1590,
-          "mem_clock_mhz": 5000,
-          "util_gpu_pct": 100,
-          "util_mem_pct": 62,
-          "throttle_reasons": []
+          "temp_c": 38,
+          "power_mw": 10200,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "pcie_gen": 1,
+          "pcie_width": 16,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
         },
         {
           "t_ms": 250,
-          "temp_c": 47,
-          "power_mw": 66400,
-          "sm_clock_mhz": 1590,
-          "mem_clock_mhz": 5000,
-          "util_gpu_pct": 100,
-          "util_mem_pct": 62,
-          "throttle_reasons": []
+          "temp_c": 38,
+          "power_mw": 10200,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "pcie_gen": 1,
+          "pcie_width": 16,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
         },
         {
           "t_ms": 500,
-          "temp_c": 49,
-          "power_mw": 66800,
-          "sm_clock_mhz": 1590,
-          "mem_clock_mhz": 5000,
-          "util_gpu_pct": 100,
-          "util_mem_pct": 62,
-          "throttle_reasons": []
+          "temp_c": 38,
+          "power_mw": 10200,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "pcie_gen": 1,
+          "pcie_width": 16,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
         },
         {
           "t_ms": 750,
-          "temp_c": 51,
-          "power_mw": 66000,
-          "sm_clock_mhz": 1590,
-          "mem_clock_mhz": 5000,
-          "util_gpu_pct": 100,
-          "util_mem_pct": 62,
-          "throttle_reasons": []
+          "temp_c": 38,
+          "power_mw": 10200,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "pcie_gen": 1,
+          "pcie_width": 16,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
         },
         {
           "t_ms": 1000,
-          "temp_c": 53,
-          "power_mw": 66400,
-          "sm_clock_mhz": 1590,
-          "mem_clock_mhz": 5000,
-          "util_gpu_pct": 100,
-          "util_mem_pct": 62,
-          "throttle_reasons": []
+          "temp_c": 38,
+          "power_mw": 10200,
+          "sm_clock_mhz": 300,
+          "mem_clock_mhz": 405,
+          "util_gpu_pct": 0,
+          "util_mem_pct": 0,
+          "pcie_gen": 1,
+          "pcie_width": 16,
+          "throttle_reasons": [
+            "gpu_idle"
+          ]
         }
       ],
       "events": [],
+      "probes": [],
       "unsupported": {
         "row_remap": "not supported on Turing (uses page retirement)"
       }
     }
   ],
+  "host_probes": [],
   "signature": {
     "algorithm": "ed25519",
     "key_id": "0d6a48c1ecfe566e",
     "public_key": "4e8v5vIR9zmaimpV/cgR7pLsfwHuEllC2ofvZZVTSZ8=",
-    "digest": "sha256:e5a2a605b5ad67d811c8da3db419b4eed5f8aa465a0ca11d6776223572329f83",
-    "value": "fDxE6IGstt8JgZn1oIgGgvxnWXYfS7jAGwrVyu9+Y/m6y7Q8PZr3NE2DPydTUvoKEfCAJWa62RIpwX7Jl2lmCQ=="
+    "digest": "sha256:6ca579f0ff95b3e78f804c04d297031b93215f3ff97101c43f2d884dc692c02a",
+    "value": "Jjmds1qBi8dF2muiAlNlQ7CigmxoNH+waoLsSksQ9diSU0jTRH0CdT28DkmoeLi1iL5/HQjLEKDmlrssxlAEAw=="
   }
 }

@@ -1,14 +1,21 @@
 // Package fake is a pretend GPU backend. It imitates an NVIDIA Tesla T4 (the GPU
-// free Colab gives you) running under full load, and can act out common hardware
-// problems on purpose. Everything is deterministic: the same scenario always
-// produces the same data, so tests can compare exact output.
+// free Colab gives you) and can act out common hardware problems on purpose.
+//
+// Like a real T4 it idles (300 MHz, ~10 W, PCIe link dropped to Gen1 to save
+// power) until a probe runs, then goes to full load. Its Runner returns pretend
+// probe results that match each scenario. Telemetry is deterministic: the same
+// scenario always produces the same readings, so tests can compare exact output.
 package fake
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
+	"sync/atomic"
+	"time"
 
+	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/probe"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/report"
 	"github.com/anushka11p/Assay-health-grades-for-GPU-backed-debt/agent/internal/telemetry"
 )
@@ -36,6 +43,10 @@ func Scenarios() []string {
 type Backend struct {
 	scenario string
 	device   *device
+	// Pretend probes take this long (soak 3x) so background sampling sees them
+	// under load. sleep is swappable so tests don't wait.
+	probeTime time.Duration
+	sleep     func(time.Duration)
 }
 
 // New returns a fake backend acting out the named scenario.
@@ -43,7 +54,15 @@ func New(scenario string) (*Backend, error) {
 	if _, ok := scenarios[scenario]; !ok {
 		return nil, fmt.Errorf("unknown scenario %q (choose from: %s)", scenario, strings.Join(Scenarios(), ", "))
 	}
-	return &Backend{scenario: scenario, device: &device{scenario: scenario}}, nil
+	return &Backend{scenario: scenario, device: &device{scenario: scenario}, sleep: time.Sleep}, nil
+}
+
+// SetLoad puts the fake GPU under load (true) or lets it idle (false).
+func (b *Backend) SetLoad(on bool) { b.device.loaded.Store(on) }
+
+// SetProbeTiming sets how long each pretend probe lasts and how to wait.
+func (b *Backend) SetProbeTiming(d time.Duration, sleep func(time.Duration)) {
+	b.probeTime, b.sleep = d, sleep
 }
 
 func (b *Backend) Name() string     { return "fake" }
@@ -70,12 +89,14 @@ func (b *Backend) Host() (report.Host, error) {
 	}, nil
 }
 
-// device is the single fake T4. sampleTick and eventTick count calls, so values
-// can change over time (e.g. temperature rising) in a repeatable way.
+// device is the single fake T4. loadTick counts readings taken under load and
+// eventTick counts event polls, so values change over time (e.g. heat building
+// up across probes) in a repeatable way.
 type device struct {
-	scenario   string
-	sampleTick int
-	eventTick  int
+	scenario  string
+	loaded    atomic.Bool
+	loadTick  int
+	eventTick int
 }
 
 func (d *device) Identity() (report.Identity, telemetry.Unsupported, error) {
@@ -120,15 +141,16 @@ func (d *device) Memory() (report.MemoryHealth, telemetry.Unsupported) {
 }
 
 func (d *device) Interconnect() (report.Interconnect, telemetry.Unsupported) {
+	// Read at the start of a check, while idle: like a real T4, the link has
+	// dropped to Gen1 to save power. Readings under load show its real speed.
 	ic := report.Interconnect{
-		PCIeGenCurrent:    report.Ptr(3),
+		PCIeGenCurrent:    report.Ptr(1),
 		PCIeGenMax:        report.Ptr(3),
 		PCIeWidthCurrent:  report.Ptr(16),
 		PCIeWidthMax:      report.Ptr(16),
 		PCIeReplayCounter: report.Ptr(uint64(0)),
 	}
 	if d.scenario == "pcie-flaky" {
-		ic.PCIeGenCurrent = report.Ptr(1)
 		ic.PCIeWidthCurrent = report.Ptr(8)
 		ic.PCIeReplayCounter = report.Ptr(uint64(4821))
 	}
@@ -146,19 +168,37 @@ func (d *device) Limits() (report.Limits, telemetry.Unsupported) {
 }
 
 func (d *device) Sample() (report.Sample, telemetry.Unsupported) {
-	n := int64(d.sampleTick)
-	d.sampleTick++
+	gen, width := int64(3), int64(16)
+	if d.scenario == "pcie-flaky" {
+		gen, width = 1, 8 // stuck on a degraded link even under load
+	}
 
+	if !d.loaded.Load() {
+		return report.Sample{
+			TempC:           report.Ptr(int64(38)),
+			PowerMW:         report.Ptr(int64(10200)),
+			SMClockMHz:      report.Ptr(int64(300)),
+			MemClockMHz:     report.Ptr(int64(405)),
+			UtilGPUPct:      report.Ptr(int64(0)),
+			UtilMemPct:      report.Ptr(int64(0)),
+			PCIeGen:         report.Ptr(int64(1)), // idle power saving
+			PCIeWidth:       report.Ptr(width),
+			ThrottleReasons: []string{"gpu_idle"},
+		}, nil
+	}
+
+	n := int64(d.loadTick)
+	d.loadTick++
 	temp := min(45+2*n, 70)    // warms up, levels off at 70°C
-	power := 66000 + (n%3)*400 // ~66 W of the 70 W limit, with a little jitter
+	power := 69000 + (n%3)*300 // pinned at the 70 W limit, with a little jitter
 	sm := int64(1590)
-	throttle := []string{}
+	throttle := []string{"sw_power_cap"} // normal for a T4 under full load
 
 	if d.scenario == "thermal-throttle" {
 		temp = min(50+3*n, 91)
 		if temp >= 85 {
 			// Software slowdown first: clocks drop 90 MHz per degree over 84.
-			throttle = append(throttle, "sw_thermal_slowdown")
+			throttle = []string{"sw_thermal_slowdown"}
 			sm = 1590 - (temp-84)*90
 		}
 		if temp >= 90 {
@@ -176,6 +216,8 @@ func (d *device) Sample() (report.Sample, telemetry.Unsupported) {
 		MemClockMHz:     report.Ptr(int64(5000)),
 		UtilGPUPct:      report.Ptr(int64(100)),
 		UtilMemPct:      report.Ptr(int64(62)),
+		PCIeGen:         report.Ptr(gen),
+		PCIeWidth:       report.Ptr(width),
 		ThrottleReasons: throttle,
 	}, nil
 }
@@ -194,4 +236,61 @@ func (d *device) PollEvents() ([]report.XIDEvent, telemetry.Unsupported) {
 		out = append(out, report.XIDEvent{XID: x, Description: telemetry.XIDDescription(x)})
 	}
 	return out, nil
+}
+
+// Runner returns pretend probes for this fake GPU.
+func (b *Backend) Runner() probe.Runner { return runner{b} }
+
+type runner struct{ b *Backend }
+
+// Run puts the GPU under load for a moment and returns a result typical of a T4
+// in this scenario. Values are integers, like real probe output.
+func (r runner) Run(ctx context.Context, spec probe.Spec, device int) report.ProbeResult {
+	res := report.ProbeResult{Name: spec.Name, Status: report.ProbeOK}
+	if spec.Name == "allreduce" {
+		res.Status, res.Reason = report.ProbeSkipped, "needs 2 or more GPUs, found 1"
+		return res
+	}
+
+	r.b.SetLoad(true)
+	defer r.b.SetLoad(false)
+	wait := r.b.probeTime
+	if spec.Name == "soak" {
+		wait *= 3
+	}
+	r.b.sleep(wait)
+
+	sc := r.b.scenario
+	switch spec.Name {
+	case "gemm":
+		fp16 := int64(38500)
+		if sc == "thermal-throttle" {
+			fp16 = 29800
+		}
+		res.Result = map[string]any{"device": int64(device), "n": int64(4096), "fp32_gflops": int64(6900), "fp16_gflops": fp16}
+	case "membw":
+		res.Result = map[string]any{"device": int64(device), "copy_mb_per_s": int64(241000), "triad_mb_per_s": int64(246000)}
+	case "memtest":
+		bad, offsets := int64(0), []any{}
+		if sc == "hbm-degrading" {
+			bad, offsets = 3, []any{int64(1073741824), int64(1073741888), int64(6442450944)}
+		}
+		res.Result = map[string]any{"device": int64(device), "mib_tested": int64(11264), "patterns": int64(6),
+			"mismatches": bad, "first_bad_offsets": offsets}
+	case "soak":
+		windows := []int64{38400, 38350, 38420, 38380, 38360, 38400}
+		if sc == "thermal-throttle" {
+			windows = []int64{38400, 36100, 30200, 22800, 16900, 15200}
+		}
+		list := make([]any, len(windows))
+		lowest := windows[0]
+		for i, w := range windows {
+			list[i] = w
+			lowest = min(lowest, w)
+		}
+		first, last := windows[0], windows[len(windows)-1]
+		res.Result = map[string]any{"device": int64(device), "window_gflops": list, "first_gflops": first,
+			"last_gflops": last, "min_gflops": lowest, "drop_pct": (first - last) * 100 / first}
+	}
+	return res
 }

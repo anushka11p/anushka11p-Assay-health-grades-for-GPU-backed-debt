@@ -18,3 +18,19 @@ jobs:
       - run: go vet ./...
       - run: go test -race ./...
       - run: go build -o assay ./cmd/assay && ./assay version
+
+  # Compiles the CUDA probes in NVIDIA's official CUDA image. No GPU needed to
+  # compile, so this catches CUDA build errors on every push. Built for T4
+  # (sm_75); the notebooks build for whatever GPU they get.
+  probes:
+    runs-on: ubuntu-latest
+    container: nvidia/cuda:12.6.3-devel-ubuntu24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install make (and NCCL headers if the image lacks them)
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq make > /dev/null
+          test -f /usr/include/nccl.h || apt-get install -y -qq libnccl-dev > /dev/null
+      - run: make -C probes ARCH=sm_75 all allreduce
+      - run: ls -l probes/bin

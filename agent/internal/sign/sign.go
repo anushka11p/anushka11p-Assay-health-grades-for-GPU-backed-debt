@@ -53,7 +53,13 @@ func KeyID(pub ed25519.PublicKey) string {
 // It refuses to overwrite an existing key unless force is true, because losing a
 // key means old reports can no longer be tied to this install.
 func SaveKeyPair(dir string, priv ed25519.PrivateKey, force bool) error {
-	keyPath := filepath.Join(dir, PrivateKeyFile)
+	return SaveKeyPairAs(dir, "agent", priv, force)
+}
+
+// SaveKeyPairAs writes <name>.key and <name>.pub, e.g. "log" for the
+// transparency log's key.
+func SaveKeyPairAs(dir, name string, priv ed25519.PrivateKey, force bool) error {
+	keyPath := filepath.Join(dir, name+".key")
 	if _, err := os.Stat(keyPath); err == nil && !force {
 		return fmt.Errorf("%s already exists (use --force to replace it)", keyPath)
 	}
@@ -71,7 +77,7 @@ func SaveKeyPair(dir string, priv ed25519.PrivateKey, force bool) error {
 	if err := os.WriteFile(keyPath, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privDER}), 0o600); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, PublicKeyFile), pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubDER}), 0o644)
+	return os.WriteFile(filepath.Join(dir, name+".pub"), pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubDER}), 0o644)
 }
 
 // LoadPrivateKey reads a PEM private key written by SaveKeyPair.

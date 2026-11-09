@@ -50,23 +50,28 @@ Start: Mon 9 Nov 2026 · Target finish: Sun 29 Nov 2026
 ## Week 2 (16–20 Nov) — Probes + transparency log
 
 **Day 6 · Mon — First probes**
-- [ ] **Us:** `probes/` Makefile; `gemm` (cuBLAS FP16/FP32 TFLOPS) and `membw` (copy/triad GB/s)
+- [x] **Us:** `probes/` Makefile; `gemm` (cuBLAS FP16/FP32 TFLOPS) and `membw` (copy/triad GB/s)
 - [ ] **You:** quick Colab run to check that the numbers look sane for a T4
 
 **Day 7 · Tue — Soak + memtest**
-- [ ] **Us:** `soak` (3-min sustained load; records clock/temp/power over time; time until throttling)
-- [ ] **Us:** `memtest` (pattern write/read-back, with a mismatch-injection self-test)
+- [x] **Us:** `soak` (3-min sustained load; records clock/temp/power over time; time until throttling)
+- [x] **Us:** `memtest` (pattern write/read-back, with a mismatch-injection self-test)
 
 **Day 8 · Wed — Orchestration**
-- [ ] **Us:** agent runs probes with timeouts, an idle-GPU check first, and 250 ms NVML sampling during probes
-- [ ] **Us:** probe results + time series go into the report
+- [x] **Us:** agent runs probes with timeouts, an idle-GPU check first, and 250 ms NVML sampling during probes
+- [x] **Us:** probe results + time series go into the report
 
 **Day 9 · Thu — Transparency log**
-- [ ] **Us:** RFC 6962 Merkle tree: `log append`, signed tree head, inclusion and consistency proofs
-- [ ] **Us:** test against RFC 6962 vectors; `verify` checks the signature and inclusion
+- [x] **Us:** RFC 6962 Merkle tree: `log append`, signed tree head, inclusion and consistency proofs
+- [x] **Us:** test against RFC 6962 vectors; `verify` checks the signature and inclusion
+
+> **Built 9 Nov (Days 6–10 in one go).** CUDA probes can't compile on the Mac (no `nvcc`),
+> so CI compiles them in NVIDIA's CUDA container, and the first real proof is your Colab run.
+> Readings now include the PCIe link, so "under load" link speed is measured (lesson from M1).
+> Running at the power cap no longer counts as a slowdown (normal for a 70 W T4).
 
 **Day 10 · Fri — Kaggle + multi-GPU → M2**
-- [ ] **Us:** `notebooks/kaggle_check.ipynb`; `allreduce` probe (NCCL) for 2× T4
+- [x] **Us:** `notebooks/kaggle_check.ipynb`; `allreduce` probe (NCCL) for 2× T4
 - [ ] **You:** run full checks on Colab + Kaggle; append all reports to the log
 
 ## Week 3 (23–29 Nov) — Census, grading, site

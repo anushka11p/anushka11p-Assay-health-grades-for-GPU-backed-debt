@@ -248,6 +248,10 @@ func (d *device) Sample() (report.Sample, telemetry.Unsupported) {
 	s.SMClockMHz = read(u, "sm_clock_mhz", int64(v), ret)
 	v, ret = d.h.GetClockInfo(nvml.CLOCK_MEM)
 	s.MemClockMHz = read(u, "mem_clock_mhz", int64(v), ret)
+	gen, ret := d.h.GetCurrPcieLinkGeneration()
+	s.PCIeGen = read(u, "pcie_gen", int64(gen), ret)
+	width, ret := d.h.GetCurrPcieLinkWidth()
+	s.PCIeWidth = read(u, "pcie_width", int64(width), ret)
 	if util, ret := d.h.GetUtilizationRates(); ret == nvml.SUCCESS {
 		s.UtilGPUPct, s.UtilMemPct = report.Ptr(int64(util.Gpu)), report.Ptr(int64(util.Memory))
 	} else {

@@ -22,8 +22,8 @@ func TestThrottleReasons(t *testing.T) {
 }
 
 func TestIdleIsNotASlowdown(t *testing.T) {
-	if telemetry.IsSlowdown("gpu_idle") || !telemetry.IsSlowdown("hw_thermal_slowdown") {
-		t.Fatal("idle must not count as a slowdown; thermal must")
+	if telemetry.IsSlowdown("gpu_idle") || telemetry.IsSlowdown("sw_power_cap") || !telemetry.IsSlowdown("hw_thermal_slowdown") {
+		t.Fatal("idle and power cap must not count as a slowdown; thermal must")
 	}
 }
 
